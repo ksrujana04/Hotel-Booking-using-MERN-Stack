@@ -1,0 +1,41 @@
+.listContainer{
+    display: flex;
+    justify-content: center;
+    margin-top: 5vh;
+}
+
+.listWrapper{
+    width: 100%;
+    max-width: 90vw;
+    display: flex;
+    gap: 20px;
+}
+
+.listSearch{
+    flex: 1;
+    background-color: #003580;
+    color: white;
+}
+
+.listResult{
+    flex: 3;
+}
+
+.lsItem>input{
+    height: 5vh;
+    border: none;
+    padding: 2%;
+    margin: 5%;
+}
+
+.lsItem>span{
+    margin: 5%;
+    padding: 5%;
+    
+    background-color: white;
+    color: black;
+}
+
+.lsItem>label{
+    font-size: 1rem;
+}
