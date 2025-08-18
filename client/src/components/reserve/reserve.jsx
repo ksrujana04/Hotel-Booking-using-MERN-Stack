@@ -4,13 +4,19 @@ import { faCircleXmark } from "@fortawesome/free-solid-svg-icons";
 import "./reserve.css";
 import useFetch from "../../hooks/useFetch.js";
 import { useContext, useState,useEffect } from "react";
+import { AuthContext } from "../../context/AuthContext.js";
 import { SearchContext } from "../../context/SearchContext.js";
 import axios from "axios";
+import {loadStripe} from "@stripe/stripe-js"
+
 
 const Reserve = ({setOpen,hotelId}) => {
+    const stripePromise= loadStripe(process.env.REACT_APP_PUBLISH_KEY);
+
+    const {user} = useContext(AuthContext);
     const [selectedRooms,setSelectedRooms] = useState([]);
     const {data,loading,error} = useFetch(`http://localhost:8800/api/hotels/room/${hotelId}`)
-    const {date} = useContext(SearchContext);
+    const { date, options } = useContext(SearchContext); // Add `options` here
 console.log(date)
     const getDatesInRange = (startDate,endDate) => {
         const date = new Date(startDate.getTime());
@@ -49,13 +55,35 @@ console.log(date)
     }, [selectedRooms]); 
 
     const handleClick = async () => {
+        if (selectedRooms.length===0){
+            alert("Please select at least one room");
+        }
         try{
-            await Promise.all(selectedRooms.map((roomId)=>{
-                const res = axios.put(`/rooms/availability/${roomId}`,{dates:alldates},{ withCredentials: true });
-                return res.data;
-            }));
+            const stripe = await stripePromise;
+            const res = await axios.post('/create-checkout-session',
+                {
+                    roomIds: selectedRooms,
+                    dates:alldates, user: user,
+                    hotelId: hotelId,
+                    nightsBooked: getDatesInRange(date[0].startDate,date[0].endDate).length,
+                    noOfRoomsBooked: options.room,
+                },
+                {headers: {"Content-Type": "application/json"},withCredentials:true}
+            );
+            const result = await stripe.redirectToCheckout({sessionId: res.data.id});
+            if (result.error){
+                console.error(result.error.message);
+             }
+             //else{
+            // await Promise.all(selectedRooms.map((roomId)=>{
+            //     const res = axios.put(`/rooms/availability/${roomId}`,{dates:alldates},{ withCredentials: true });
+
+            //     return res.data;
+            // }
             setOpen(false);
-        }catch(err){}
+        }catch(err){
+            console.error("Payment session error:",err);
+        }
     }
 
     return (
@@ -79,14 +107,14 @@ console.log(date)
                     {item.roomNumbers.map(roomNumber=>(
                         <div className="room" key={roomNumber._id}>
                             <label htmlFor="">{roomNumber.number}</label>
-                            <input type="checkbox" value={roomNumber._id} onChange={handleSelect} disabled={!isAvailable(roomNumber)} />
+                            <input type="checkbox" value={roomNumber._id} onChange={handleSelect}disabled={!isAvailable(roomNumber) || (!selectedRooms.includes(roomNumber._id) && selectedRooms.length >= options.room)}/>
                         </div>
                     ))}
                 
             </div>
         ))}
-        <button onClick={handleClick} className="rButton">Reserve Now!</button>
-            </div>
+        <button onClick={handleClick} className="rButton" disabled={selectedRooms.length !== options.room}>Reserve Now!</button>
+        </div>
         </div>
     )
 };

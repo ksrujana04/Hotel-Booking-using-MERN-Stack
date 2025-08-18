@@ -2,7 +2,8 @@ import Hotel from "../models/hotel.js";
 import Room from "../models/room.js";
 
 export const createHotel = async (req,res,next) => {
-    const newHotel = new Hotel(req.body);
+    const newHotel = new Hotel({...req.body,
+  owner: req.user.id});
 
     try{
         const savedHotel = await newHotel.save();
@@ -50,6 +51,15 @@ export const readallHotel = async (req,res,next) => {
         next(err);
     }
 }; 
+
+export const readAdminHotels = async (req,res,next) => {
+    try {
+    const hotels = await Hotel.find({ owner: req.user.id });
+    res.status(200).json(hotels);
+  } catch (err) {
+    next(err);
+  }
+};
 
 export const countByCity = async (req,res,next) => {
     const cities = req.query.cities.split(",");

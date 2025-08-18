@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 // import { AuthContext } from "../../context/AuthContext";
 import "./login.scss";
+import {jwtDecode }from "jwt-decode";
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -18,17 +19,28 @@ const Login = () => {
   const handleChange = (e) => {
     setCredentials((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
-
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    console.log(value,parts)
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
   const handleClick = async (e) => {
     e.preventDefault();
     dispatch({ type: "LOGIN_START" });
     try {
-      const res = await axios.post("/auth/login", credentials);
-      if (res.data.isAdmin) {
-        dispatch({ type: "LOGIN_SUCCESS", payload: res.data.details });
-
-        navigate("/");
-      } else {
+      const res = await axios.post("/auth/login", credentials, {
+  withCredentials: true,   // ✅ Required to send/receive cookies
+});
+      console.log(res)
+      if (!res) throw new Error("Login response is undefined");
+      const token = getCookie("access_token");
+    const decoded =  jwtDecode(token); // { id, isAdmin, ... }
+console.log(decoded)
+    if (decoded.isAdmin) {
+      dispatch({ type: "LOGIN_SUCCESS", payload: res.data.details });
+      navigate("/");
+    }  else {
         dispatch({
           type: "LOGIN_FAILURE",
           payload: { message: "You are not allowed!" },

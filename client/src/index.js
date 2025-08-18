@@ -15,6 +15,6 @@ root.render(
   </React.StrictMode>
 );
 
-window.addEventListener("unload", () => {
-  localStorage.removeItem("user");
-});
+// window.addEventListener("unload", () => {
+//   localStorage.removeItem("user");
+// });

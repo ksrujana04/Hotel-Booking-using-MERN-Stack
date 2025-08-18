@@ -53,7 +53,7 @@ const HeaderSearch = () => {
               date[0].endDate,
               "dd/MM/yyyy"
             )}`}
-          </span>
+          
           {openDate && (
             <DateRange
               editableDateInputs={true}
@@ -61,8 +61,10 @@ const HeaderSearch = () => {
               moveRangeOnFirstSelection={false}
               ranges={date}
               minDate={new Date()}
+              className="date-picker"
             />
           )}
+          </span>
           <span onClick={() => setOpenOptions(!openOptions)}>
             <FontAwesomeIcon icon={faPerson} /> {" "}
             {`${options.adult} adult · ${options.children} children · ${options.room} room`}

@@ -29,8 +29,10 @@ const Hotel = () => {
 
   const { data, loading } = useFetch(`http://localhost:8800/api/hotels/find/${id}`);
   const { user } = useContext(AuthContext);
-  const { date, options, dispatch } = useContext(SearchContext);
+  const { date: contextDate, options: contextOptions, dispatch } = useContext(SearchContext);
   const navigate = useNavigate();
+  const [date, setDate] = useState(contextDate?.length ? contextDate : [{startDate: new Date(),endDate: new Date(),key: "selection",},]);
+  const [options, setOptions] = useState(contextOptions || {adult: 1,children: 0,room: 1,});
 
   const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
   const dayDifference = (date1, date2) => {
@@ -53,25 +55,38 @@ const Hotel = () => {
   };
 
   const handleDateChange = (range) => {
-    dispatch({
-      type: "NEW_SEARCH",
-      payload: { date: [range.selection], options },
-    });
-  };
+  const safeStart = new Date(range.selection.startDate);
+  const safeEnd = new Date(range.selection.endDate);
+
+  const newSelection = [{
+    startDate: safeStart,
+    endDate: safeEnd,
+    key: "selection"
+  }];
+
+  setDate(newSelection);
+
+  dispatch({
+    type: "NEW_SEARCH",
+    payload: {
+      date: newSelection,
+      options
+    },
+  });
+};
+
 
   const handleOptionChange = (field, value) => {
-    const newOptions = {
-      ...options,
-      [field]: Math.max(0, Number(value)),
-    };
-    if (field === "adult" || field === "room") {
-      newOptions[field] = Math.max(1, Number(value));
-    }
-    dispatch({
-      type: "NEW_SEARCH",
-      payload: { date, options: newOptions },
-    });
+  const newOptions = {
+    ...options,
+    [field]: Math.max(field === "children" ? 0 : 1, Number(value)),
   };
+  setOptions(newOptions);
+  dispatch({
+    type: "NEW_SEARCH",
+    payload: { date, options: newOptions },
+  });
+};
 
   const handleClick = () => {
     if (user) {
@@ -126,7 +141,7 @@ const Hotel = () => {
               <div className="hotelDetailsPrice">
                 <div className="lsItem">
                   <span onClick={() => setOpenDate(!openDate)}>
-                    {`${format(date[0].startDate, "dd/MM/yy")} to ${format(date[0].endDate, "dd/MM/yy")}`}
+                    {`${format(new Date(date[0]?.startDate || new Date()), "dd/MM/yy")} to ${format(new Date(date[0]?.endDate || new Date()), "dd/MM/yy")}`}
                   </span>
                   {openDate && (
                     <DateRange

@@ -6,14 +6,16 @@ import {
     faPlane,
     faTaxi,
 } from '@fortawesome/free-solid-svg-icons';
-import {Link} from "react-router-dom";
-import { useContext } from "react";
+
+import { useContext , useEffect} from "react";
 import { AuthContext } from "../../context/AuthContext.js";
+import { Link , useNavigate } from "react-router-dom";
 
 const Navbar = () => {
+    const navigate = useNavigate();
+    const { user } = useContext(AuthContext);
 
-    const {user} = useContext(AuthContext);
-    
+  
 
     return (
         <div className="navbar">
@@ -41,9 +43,11 @@ const Navbar = () => {
                         <FontAwesomeIcon icon={faTaxi} />
                         <span>Airport taxis</span>
                     </div>
-                    {user ? user.username :<div className="navButtons">
-                    <button className="navButton">Register</button>
-                    <button className="navButton">Login</button>
+                    {user ? <Link to="/profile" className="navUser">
+    {user.username}
+  </Link> :<div className="navButtons">
+                    <button className="navButton" onClick={() => navigate('/register')}>Register</button>
+                    <button className="navButton" onClick={() => navigate('/login')}>Login</button>
                     </div>}
                 </div>
             </div>

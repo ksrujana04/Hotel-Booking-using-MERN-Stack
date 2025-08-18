@@ -29,6 +29,12 @@
     position: absolute;
     top:4vh;
     z-index: 2;
+} 
+
+.date-picker{
+    position: absolute;
+    
+    z-index: 2;
 }
 
 .options{
